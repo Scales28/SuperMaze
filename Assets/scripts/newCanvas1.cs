@@ -17,9 +17,12 @@ public class newCanvas1 : MonoBehaviour
     public string nextSceneName;
 
     [Header("Audio Settings")]
-    public AudioSource audioSource;         // Reference to the AudioSource component
-    public AudioClip soundToPlay;           // The sound you want to play
-    public int playSoundAtIndex = -1;       // Index at which to play the sound (-1 = don't play)
+    public AudioSource audioSource;
+    public AudioClip soundToPlay;
+    public int playSoundAtIndex = -1;
+
+    private Coroutine textCoroutine;
+    private bool hasSkipped = false;
 
     private void Start()
     {
@@ -31,7 +34,18 @@ public class newCanvas1 : MonoBehaviour
         mainCanvas.SetActive(false);
         textCanvas.SetActive(true);
 
-        StartCoroutine(FlickerThroughText());
+        textCoroutine = StartCoroutine(FlickerThroughText());
+    }
+
+    public void OnSkipButtonClicked()
+    {
+        if (hasSkipped) return;
+        hasSkipped = true;
+
+        if (textCoroutine != null)
+            StopCoroutine(textCoroutine);
+
+        SceneManager.LoadScene(nextSceneName);
     }
 
     IEnumerator FlickerThroughText()
@@ -40,7 +54,6 @@ public class newCanvas1 : MonoBehaviour
         {
             flickerText.text = texts[i];
 
-            // Play sound if we're at the specified index
             if (i == playSoundAtIndex && soundToPlay != null && audioSource != null)
             {
                 audioSource.PlayOneShot(soundToPlay);
@@ -51,6 +64,8 @@ public class newCanvas1 : MonoBehaviour
         }
 
         yield return new WaitForSeconds(timeAfterAllTexts);
-        SceneManager.LoadScene(nextSceneName);
+
+        if (!hasSkipped)
+            SceneManager.LoadScene(nextSceneName);
     }
 }
